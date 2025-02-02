@@ -16,7 +16,7 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 
 @bot.event
 async def on_ready():
-    print(f"astrobot awakened")
+    print(f"astrobot est réveillé")
 
 @bot.event
 async def on_message(message):
