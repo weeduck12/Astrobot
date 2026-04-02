@@ -1,24 +1,24 @@
 import discord 
 import os
 from dotenv import load_dotenv
-
+import random
 load_dotenv()
+from discord.ext import commands
+import database
+
+bot = commands.Bot(command_prefix='*')
 TOKEN = os.getenv("DISCORD_TOKEN")
-GUILD = os.getenv("DISCORD_GUILD")
-client = discord.Client()
-@client.event
+
+@bot.event
 async def on_ready():
-    print(f"{client.user} is booting....")
-    for guild in client.guilds:
-        if guild.name == GUILD:
-            break
-        
-    print(
-        f"{client.user} is connected to the following guild:\n"
-        f"{guild.name}(id: {guild.id})"
-    )
+    await database.init_db()
+    print(f'{bot.user} is booting up...')
 
-    members = "\n - ".join([member.name for member in guild.members])
-    print(f"Guild Members:\n - {members}")
-client.run(TOKEN)
+    try:
+        await bot.load_extension('cogs.summon')
+        await bot.load_extension('cogs.admin')
+        print("admin and  summon cogs loaded successfully.")
+    except Exception as e:
+        print(f"Error loading cogs: {e}")
 
+bot.run(TOKEN)
