@@ -8,8 +8,8 @@ class Summon(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name="roll")
-    async def roll(self, ctx):
+    @commands.command(name="summon")
+    async def summon(self, ctx):
         async with aiosqlite.connect(database.DB_PATH) as db:
             # On récupère tous les IDs des persos existants
             async with db.execute("SELECT id FROM characters") as cursor:
@@ -40,7 +40,7 @@ class Summon(commands.Cog):
         )
         embed.add_field(name="Statistiques", value=stats, inline=False)
         
-        await ctx.send(content=f"**{ctx.author.display_name}** a invoqué...", embed=embed)
+        await ctx.send(content=f"**{ctx.author.display_name}** has summoned...", embed=embed)
 
-async def setup(bot):
-    await bot.add_cog(Summon(bot))
+def setup(bot): # this is called by discord.py to setup the cog
+    bot.add_cog(Summon(bot)) # add the cog to the bot

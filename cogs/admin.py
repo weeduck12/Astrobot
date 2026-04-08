@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-import database<
+import database
 
 class Admin(commands.Cog):
     def __init__(self, bot):
@@ -19,5 +19,5 @@ class Admin(commands.Cog):
         except Exception as e:
             await ctx.send(f"❌ Erreur lors de l'ajout : {e}")
 
-async def setup(bot):
-    await bot.add_cog(Admin(bot))
+def setup(bot): # this is called by discord.py to setup the cog
+    bot.add_cog(Admin(bot)) # add the cog to the bot
