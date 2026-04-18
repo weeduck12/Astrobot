@@ -16,7 +16,7 @@ class Summon(commands.Cog):
                 rows = await cursor.fetchall()
                 
             if not rows:
-                return await ctx.send("La base de données est vide ! Utilise *add_char d'abord.")
+                return await ctx.send("Database empty ! add some characters first with *add_char")
 
             # On en choisit un au hasard
             random_id = random.choice(rows)[0]
@@ -28,7 +28,7 @@ class Summon(commands.Cog):
         # Création d'un bel Embed (la carte du perso)
         embed = discord.Embed(
             title=f"✨ {char[1]}", # Nom
-            description=f"Série : **{char[2]}**", # Série
+            description=f"Series : **{char[2]}**", # Série
             color=discord.Color.blue()
         )
         embed.set_image(url=char[3]) # Image
@@ -38,7 +38,7 @@ class Summon(commands.Cog):
             f"❤️ HP: {char[4]} | 🛡️ DEF: {char[5]} | 🧪 RES: {char[7]}\n"
             f"⚔️ ATK: {char[8]} | ⚡ SPD: {char[12]}"
         )
-        embed.add_field(name="Statistiques", value=stats, inline=False)
+        embed.add_field(name="statistics", value=stats, inline=False)
         
         await ctx.send(content=f"**{ctx.author.display_name}** has summoned...", embed=embed)
 

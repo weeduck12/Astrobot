@@ -6,11 +6,39 @@ async def init_db():
     
     async with aiosqlite.connect(DB_PATH) as db:
         await db.execute('''
+            CREATE TABLE IF NOT EXISTS worlds (
+                id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                name      TEXT NOT NULL,
+                url       TEXT
+            )
+        ''' )
+        await db.execute('''
+            CREATE TABLE IF NOT EXISTS sub_series (
+                id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                world_id        INTEGER NOT NULL,
+                name  TEXT NOT NULL,
+                FOREIGN KEY (world_id) REFERENCES worlds(id)        
+            )
+        ''')    
+        await db.execute('''
+            CREATE TABLE IF NOT EXISTS zones (
+                id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                world_id         INTEGER NOT NULL,
+                sub_series_id    INTEGER DEFAULT NULL,
+                name        TEXT NOT NULL,
+                url         TEXT,
+                foreign key (world_id) REFERENCES worlds(id),
+                foreign key (sub_series_id) REFERENCES sub_series(id)
+            )
+        ''' )
+        await db.execute('''
             CREATE TABLE IF NOT EXISTS characters (
                 id              INTEGER PRIMARY KEY AUTOINCREMENT,
-                name            TEXT NOT NULL,
-                series          TEXT,
-                image_url       TEXT,
+                world_id        INTEGER NOT NULL,
+                zone_id         INTEGER DEFAULT NULL,
+                sub_series_id    INTEGER DEFAULT NULL,
+                name       TEXT NOT NULL,
+                url        TEXT,
                 hp              INTEGER DEFAULT 100,
                 defense         INTEGER DEFAULT 30,
                 special_defense INTEGER DEFAULT 30,
@@ -19,15 +47,52 @@ async def init_db():
                 attack_stamina  INTEGER DEFAULT 50,
                 special_attack  INTEGER DEFAULT 50,
                 special_stamina INTEGER DEFAULT 50,
-                speed           INTEGER DEFAULT 20
+                speed           INTEGER DEFAULT 20,
+                foreign key (world_id) REFERENCES worlds(id),
+                foreign key (zone_id) REFERENCES zones(id),
+                foreign key (sub_series_id) REFERENCES sub_series(id)
             )
         ''')
+        await db.execute('''
+            CREATE TABLE IF NOT EXISTS user_items (
+                id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                name        TEXT NOT NULL,
+                type        TEXT NOT NULL,
+                quantity         INTEGER NOT NULL,
+                url         TEXT
+            )
+        ''' )
+
         await db.commit()
 
-async def add_character(name, series, image_url, hp, defense, special_defense, resistance, attack, attack_stamina, special_attack, special_stamina, speed):
+async def add_character(name, series, char_url, hp, defense, special_defense, resistance, attack, attack_stamina, special_attack, special_stamina, speed):
     async with aiosqlite.connect(DB_PATH) as db:
         await db.execute("""
-            INSERT INTO characters (name, series, image_url, hp, defense, special_defense, resistance, attack, attack_stamina, special_attack, special_stamina, speed)
+            INSERT INTO characters (name, series, char_url, hp, defense, special_defense, resistance, attack, attack_stamina, special_attack, special_stamina, speed)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (name, series, image_url, hp, defense, special_defense, resistance, attack, attack_stamina, special_attack, special_stamina, speed))
+        """, (name, series, char_url, hp, defense, special_defense, resistance, attack, attack_stamina, special_attack, special_stamina, speed))
+        await db.commit()
+
+async def add_user_item(item_name, item_type, quantity, item_url):
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("""
+            INSERT INTO user_items (item_name, item_type, quantity, item_url)
+            VALUES (?, ?, ?, ?)
+        """, (item_name, item_type, quantity, item_url))
+        await db.commit()
+
+async def add_world(map_name, zone_id, world_url):
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("""
+            INSERT INTO worlds (map_name, zone_id, world_url)
+            VALUES (?, ?, ?)
+        """, (map_name, zone_id, world_url))
+        await db.commit()
+
+async def add_zone(zone_name, zone_url):
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("""
+            INSERT INTO zones (zone_name, zone_url)
+            VALUES (?, ?)
+        """, (zone_name, zone_url))
         await db.commit()
