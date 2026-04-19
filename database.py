@@ -54,6 +54,16 @@ async def init_db():
             )
         ''')
         await db.execute('''
+            CREATE TABLE IF NOT EXISTS items (
+                id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                name        TEXT NOT NULL,
+                type        TEXT NOT NULL,
+                world_id    INTEGER DEFAULT NULL,
+                url         TEXT,
+                foreign key (world_id) REFERENCES worlds(id)
+            )
+        ''' )
+        await db.execute('''
             CREATE TABLE IF NOT EXISTS user_items (
                 id              INTEGER PRIMARY KEY AUTOINCREMENT,
                 name        TEXT NOT NULL,
@@ -62,9 +72,7 @@ async def init_db():
                 url         TEXT
             )
         ''' )
-
         await db.commit()
-
 async def add_character(name, series, char_url, hp, defense, special_defense, resistance, attack, attack_stamina, special_attack, special_stamina, speed):
     async with aiosqlite.connect(DB_PATH) as db:
         await db.execute("""

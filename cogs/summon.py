@@ -11,36 +11,27 @@ class Summon(commands.Cog):
     @commands.command(name="summon")
     async def summon(self, ctx):
         async with aiosqlite.connect(database.DB_PATH) as db:
-            # On récupère tous les IDs des persos existants
-            async with db.execute("SELECT id FROM characters") as cursor:
+            db.row_factory = aiosqlite.Row
+            async with db.execute("SELECT id FROM items WHERE type = 'pass'") as cursor:
                 rows = await cursor.fetchall()
                 
             if not rows:
-                return await ctx.send("Database empty ! add some characters first with *add_char")
+                return await ctx.send("Database empty ! add some items first with *add_item")
 
             # On en choisit un au hasard
-            random_id = random.choice(rows)[0]
+            random_id = random.choice(rows)['id']
 
-            # On récupère les infos complètes de ce perso
-            async with db.execute("SELECT * FROM characters WHERE id = ?", (random_id,)) as cursor:
-                char = await cursor.fetchone()
+            async with db.execute("SELECT * FROM items WHERE id = ?", (random_id,)) as cursor:
+                item = await cursor.fetchone()
 
-        # Création d'un bel Embed (la carte du perso)
         embed = discord.Embed(
-            title=f"✨ {char[1]}", # Nom
-            description=f"Series : **{char[2]}**", # Série
+            title=f"🌀{item['name']}🌀", 
+            description=item['description'], 
             color=discord.Color.blue()
         )
-        embed.set_image(url=char[3]) # Image
+        embed.set_image(url=item['url']) # Image
         
-        # Affichage des statistiques
-        stats = (
-            f"❤️ HP: {char[4]} | 🛡️ DEF: {char[5]} | 🧪 RES: {char[7]}\n"
-            f"⚔️ ATK: {char[8]} | ⚡ SPD: {char[12]}"
-        )
-        embed.add_field(name="statistics", value=stats, inline=False)
-        
-        await ctx.send(content=f"**{ctx.author.display_name}** has summoned...", embed=embed)
+        await ctx.send(content=f"**{ctx.author.display_name}** has opened a path...", embed=embed)
 
-def setup(bot): # this is called by discord.py to setup the cog
-    bot.add_cog(Summon(bot)) # add the cog to the bot
+def setup(bot): 
+    bot.add_cog(Summon(bot)) 
