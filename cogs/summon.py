@@ -33,5 +33,5 @@ class Summon(commands.Cog):
         
         await ctx.send(content=f"**{ctx.author.display_name}** has opened a path...", embed=embed)
 
-def setup(bot): 
+async def setup(bot): 
     bot.add_cog(Summon(bot)) 

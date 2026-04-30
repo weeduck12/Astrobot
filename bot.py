@@ -16,4 +16,5 @@ async def on_ready():
 bot.load_extension("cogs.greetings")
 bot.load_extension("cogs.admin")
 bot.load_extension("cogs.summon")
+bot.load_extension("cogs.world")
 bot.run(TOKEN)

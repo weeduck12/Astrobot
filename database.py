@@ -36,9 +36,9 @@ async def init_db():
                 id              INTEGER PRIMARY KEY AUTOINCREMENT,
                 world_id        INTEGER NOT NULL,
                 zone_id         INTEGER DEFAULT NULL,
-                sub_series_id    INTEGER DEFAULT NULL,
-                name       TEXT NOT NULL,
-                url        TEXT,
+                sub_series_id   INTEGER DEFAULT NULL,
+                name            TEXT NOT NULL,
+                url             TEXT,
                 hp              INTEGER DEFAULT 100,
                 defense         INTEGER DEFAULT 30,
                 special_defense INTEGER DEFAULT 30,
@@ -70,6 +70,15 @@ async def init_db():
                 type        TEXT NOT NULL,
                 quantity         INTEGER NOT NULL,
                 url         TEXT
+            )
+        ''' )
+        await db.execute('''
+            CREATE TABLE IF NOT EXISTS user_collection (
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id        TEXT NOT NULL,
+                character_id    INTEGER NOT NULL,
+                copies         INTEGER DEFAULT 1,
+                foreign key (character_id) REFERENCES characters(id)
             )
         ''' )
         await db.commit()
@@ -104,3 +113,46 @@ async def add_zone(zone_name, zone_url):
             VALUES (?, ?)
         """, (zone_name, zone_url))
         await db.commit()
+
+async def get_random_zone(world_id):
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute("""
+            SELECT * FROM zones
+            WHERE world_id = ?
+            ORDER BY RANDOM()
+            LIMIT 1
+        """, (world_id,)) as cursor:
+            return await cursor.fetchone()
+        
+async def get_random_character(zone_id):
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute("""
+            SELECT * FROM characters
+            WHERE zone_id = ?
+            ORDER BY RANDOM()
+            LIMIT 1
+        """, (zone_id,)) as cursor:
+            return await cursor.fetchone()
+    
+async def activate_pass(user_id, item_id, duration_hours):
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("""
+            UPDATE user_items SET quantity = quantity - 1
+            WHERE user_id = ? AND item_id = ? AND quantity > 0
+        """, (user_id, item_id))
+        await db.execute("""
+            UPDATE user_items SET expires_at = datetime('now', '+? hours')
+            WHERE user_id = ? AND item_id = ?
+        """, (duration_hours, user_id, item_id))
+        await db.commit()
+
+async def get_active_passes(user_id):
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute("""
+            SELECT * FROM user_items
+            WHERE user_id = ? AND type = 'pass' AND expires_at > datetime('now')
+          """,(user_id,)) as cursor:
+            return await cursor.fetchone()
